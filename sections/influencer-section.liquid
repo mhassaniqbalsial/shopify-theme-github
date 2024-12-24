@@ -1,0 +1,71 @@
+<div id="shopify-section-influencer-section">
+  <div>{{ product.selected_variant.id }}</div>
+  {{ product.selected_variant.weight }}
+  {{ product.selected_variant.quantity_price_breaks }}
+  <div>{{ product.selected_variant.metafields }}</div>
+  <div>{{ product.selected_variant.sku }}</div>
+  <div class="influencer-image" data-variant-id="{{ product.selected_variant.id }}">
+    {% if product.selected_variant.image %}
+      <img
+        src="{{ product.selected_variant.image | img_url: '400x' }}"
+        alt="{{ product.selected_variant.image.alt }}"
+        loading="lazy"
+        width="400"
+        height="400"
+      >
+    {% endif %}
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    console.log("The script works");
+    window.addEventListener('variant:change', (event) => {
+      try {
+        const { selectedOptionValues, timestamp } = event.detail;
+        var url = new URL(window.location);
+        url.searchParams.append('section_id', 'influencer-section');
+        const urlString = url.toString();
+        console.log("url string: ", urlString);
+        console.log("variant details:", selectedOptionValues);
+        
+        // Call fetchInfluencer with the URL
+        fetchInfluencer(urlString);
+      } catch(error) {
+        console.error('Error handling variant change:', error);
+      }
+    });
+  });
+
+  async function fetchInfluencer(variantURL) {
+    try {
+      let response = await fetch(variantURL);
+      if(!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
+      let text = await response.text();
+      let htmlMarkup = new DOMParser()
+        .parseFromString(text, 'text/html')
+        .querySelector('#shopify-section-influencer-section')
+        .innerHTML;
+      
+      let influencerBlock = document.querySelector('#shopify-section-influencer-section');
+      if(influencerBlock) {
+        influencerBlock.innerHTML = htmlMarkup;
+      } else {
+        console.error('Influencer block not found');
+      }
+    } catch(error) {
+      console.error('Error fetching influencer section:', error);
+    }
+  }
+</script>
+
+{% schema %}
+{
+  "name": "Influencer Section",
+  "settings": [],
+  "presets": [{
+    "name": "Influencer Section"
+  }]
+}
+{% endschema %}
